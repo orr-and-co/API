@@ -1,8 +1,11 @@
 """
-Models describe how the API interacts with the database. Generally, these models are database-agnostic due to SQLAlchemy.
+Models describe how the API interacts with the database. Generally, these models are
+database-agnostic due to SQLAlchemy.
 
 Reference: :download:`Deliverable 2 <../ref/deliverable-2.pdf>`.
 """
+
+from datetime import datetime
 
 from flask_sqlalchemy import Model
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -31,7 +34,7 @@ class Publisher(Model):
     :type full_admin: bool
     """
 
-    id = db.Column(db.Integer, autoincrement=True)
+    id = db.Column(db.Integer, autoincrement=True, primary_key=True)
     name = db.Column(db.String(256))
     email = db.Column(db.String(512))
     password_hash = db.Column(db.String(200))
@@ -57,18 +60,72 @@ class Post(Model):
     """
     Posts represent data that is displayed to the end user. Posts are created by
     publishers.
+
+    :param id: Internal ID of the post. Do not use for sensitive actions, since it
+        autoincrements.
+    :type id: int
+
+    :param publisher_id: Internal ID of the :class:`Publisher` responsible for creating
+        this Post. Use :attr:`publisher` instead!
+    :type publisher_id: int
+
+    :param publisher: :class:`Publisher` associated with the :attr:`publisher_id`.
+    :type publisher: :class:`Publisher`
+
+    :param title: The title of the Post.
+    :type title: str
+
+    :param content: Markdown content of the Post.
+    :type content: str
+
+    :param link: Link of the Post if available.
+    :type link: str
+
+    :param created_at: When this Post was created.
+    :type created_at: datetime
+
+    :param published_at: When this Post is set to be published (if not the same as
+        :attr:`created_at`).
+    :type published_at: datetime
+
+    :param likes: How many likes this Post has.
+    :type likes: int
+
+    :param dislikes: How many dislieks this Post has.
+    :type dislikes: int
     """
 
-    pass
+    id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+    publisher_id = db.Column(db.Integer, db.ForeignKey(Publisher.id))
+    title = db.Column(db.String(200), nullable=True)
+    content = db.Column(db.String(8000))
+    link = db.Column(db.String(500))
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.now())
+    published_at = db.Column(db.DateTime, default=datetime.now())
+    likes = db.Column(db.Integer, nullable=False, default=0)
+    dislikes = db.Column(db.Integer, nullable=False, default=0)
+
+    publisher = db.relationship("Publisher", foreign_keys="Post.publisher_id")
 
 
 class Interest(Model):
     """
     An Interest represents a classification of a :class:`Post`. These are used to allow
     users to subscribe to their own interests.
+
+    :param id: Internal ID of the Interest.
+    :type id: int
+
+    :param name: The name of the Interest that is presented to the user.
+    :type name: str
+
+    :param description: Description of the Interest presented to the user.
+    :type description: str
     """
 
-    pass
+    id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+    name = db.Column(db.String(100), unique=True, nullable=False)
+    description = db.Column(db.String(200), nullable=False)
 
 
 class PostInterest(Model):
