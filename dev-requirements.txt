@@ -1,3 +1,4 @@
 black~=22.0 # code formatting
 isort~=5.10 # import sorting
 mypy==0.931 # typing extensions
+sphinx~=4.4.0 # documentation generator
