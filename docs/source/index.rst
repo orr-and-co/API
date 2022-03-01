@@ -10,6 +10,14 @@ API Details for 10 Second City
    :maxdepth: 2
    :caption: Contents:
 
+Routes
+======
+
+This is the section you should use if you're programming a frontend.
+
+.. automodule:: app.routes
+   :members:
+
 Models
 ======
 

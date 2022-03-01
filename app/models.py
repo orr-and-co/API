@@ -3,18 +3,29 @@ Models describe how the API interacts with the database. Generally, these models
 database-agnostic due to SQLAlchemy.
 
 Reference: :download:`Deliverable 2 <../ref/deliverable-2.pdf>`.
+
+The reference was not followed regarding follow up posts. This was instead set as a
+foreign key on the :class:`Post` relation.
 """
 
 from datetime import datetime
 
-from flask_sqlalchemy import Model
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app import db
 
+post_interest = db.Table(
+    "post_interest",
+    db.Column("post_id", db.Integer, db.ForeignKey("Post.id", ondelete="CASCADE")),
+    db.Column(
+        "interest_id", db.Integer, db.ForeignKey("Interest.id", ondelete="CASCADE")
+    ),
+)
 
-class Publisher(Model):
-    """Database model for publisher information.
+
+class Publisher(db.Model):
+    """
+    Database model for publisher information.
 
     :param id: Internal database ID of the publisher. Automatically increments. Should not
         be used for sensitive transactions due to auto-increment.
@@ -33,6 +44,8 @@ class Publisher(Model):
         i.e can they create other admins.
     :type full_admin: bool
     """
+
+    __tablename__ = "publisher"
 
     id = db.Column(db.Integer, autoincrement=True, primary_key=True)
     name = db.Column(db.String(256))
@@ -56,7 +69,7 @@ class Publisher(Model):
         return check_password_hash(self.password_hash, password)
 
 
-class Post(Model):
+class Post(db.Model):
     """
     Posts represent data that is displayed to the end user. Posts are created by
     publishers.
@@ -71,6 +84,12 @@ class Post(Model):
 
     :param publisher: :class:`Publisher` associated with the :attr:`publisher_id`.
     :type publisher: :class:`Publisher`
+
+    :param followup_id: Internal ID of the :class:`Post` that may follow up on this Post.
+    :type followup_id: int
+
+    :param followup: :class:`Post` associated with the :attr:`followup_id`.
+    :type followup: :class:`Post`
 
     :param title: The title of the Post.
     :type title: str
@@ -95,20 +114,27 @@ class Post(Model):
     :type dislikes: int
     """
 
+    __tablename__ = "post"
+
     id = db.Column(db.Integer, autoincrement=True, primary_key=True)
     publisher_id = db.Column(db.Integer, db.ForeignKey(Publisher.id))
+    followup_id = db.Column(db.Integer, db.ForeignKey("Post.id"))
+
     title = db.Column(db.String(200), nullable=True)
     content = db.Column(db.String(8000))
     link = db.Column(db.String(500))
+
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.now())
     published_at = db.Column(db.DateTime, default=datetime.now())
+
     likes = db.Column(db.Integer, nullable=False, default=0)
     dislikes = db.Column(db.Integer, nullable=False, default=0)
 
     publisher = db.relationship("Publisher", foreign_keys="Post.publisher_id")
+    followup = db.relationship("Post", foreign_keys="Post.followup_id")
 
 
-class Interest(Model):
+class Interest(db.Model):
     """
     An Interest represents a classification of a :class:`Post`. These are used to allow
     users to subscribe to their own interests.
@@ -123,30 +149,25 @@ class Interest(Model):
     :type description: str
     """
 
+    __tablename__ = "interest"
+
     id = db.Column(db.Integer, autoincrement=True, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
     description = db.Column(db.String(200), nullable=False)
 
-
-class PostInterest(Model):
-    """
-    Join table for :class:`Post` and :class:`Interest`
-    """
-
-    pass
-
-
-class PostFollowup(Model):
-    """
-    Join table for :class:`Post` to :class:`Post` joins
-    """
-
-    pass
+    posts = db.relationship(
+        "Post",
+        secondary="post_interest",
+        primaryjoin=(post_interest.c.interest_id == id),
+        secondaryjoin=(post_interest.c.post_id == Post.id),
+        backref=db.backref("interests", lazy="dynamic"),
+        lazy="dynamic",
+    )
 
 
-class PostModification(Model):
+class PostModification(db.Model):
     """
     Stores the edit history of a :class:`Post`
     """
 
-    pass
+    id = db.Column(db.Integer, autoincrement=True, primary_key=True)
