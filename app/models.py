@@ -16,9 +16,9 @@ from app import db
 
 post_interest = db.Table(
     "post_interest",
-    db.Column("post_id", db.Integer, db.ForeignKey("Post.id", ondelete="CASCADE")),
+    db.Column("post_id", db.Integer, db.ForeignKey("post.id", ondelete="CASCADE")),
     db.Column(
-        "interest_id", db.Integer, db.ForeignKey("Interest.id", ondelete="CASCADE")
+        "interest_id", db.Integer, db.ForeignKey("interest.id", ondelete="CASCADE")
     ),
 )
 
@@ -118,7 +118,7 @@ class Post(db.Model):
 
     id = db.Column(db.Integer, autoincrement=True, primary_key=True)
     publisher_id = db.Column(db.Integer, db.ForeignKey(Publisher.id))
-    followup_id = db.Column(db.Integer, db.ForeignKey("Post.id"))
+    followup_id = db.Column(db.Integer, db.ForeignKey("post.id"))
 
     title = db.Column(db.String(200), nullable=True)
     content = db.Column(db.String(8000))

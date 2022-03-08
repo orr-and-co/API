@@ -1,3 +1,4 @@
+# pip install -r dev-requirements.txt
 black~=22.0 # code formatting
 isort~=5.10 # import sorting
 mypy==0.931 # typing extensions
