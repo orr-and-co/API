@@ -30,6 +30,7 @@ class PublisherTest(unittest.TestCase):
 
         self.assertTrue(self.publisher_1.check_password("jude1234"))
         self.assertTrue(self.publisher_2.check_password("orr1234"))
+
         self.assertFalse(self.publisher_1.check_password("klsijlkajsd"))
         self.assertFalse(self.publisher_2.check_password("lkasjdlkajsf"))
 
