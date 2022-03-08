@@ -1,9 +1,28 @@
 import unittest
 
+from app.models import Publisher
 
-class MyTestCase(unittest.TestCase):
-    def test_something(self):
-        self.assertEqual(True, False)  # add assertion here
+
+class PublisherTest(unittest.TestCase):
+    def setUp(self):
+        self.publisher_1 = Publisher(
+            name="Jude Southworth",
+            email="judesouthworth@pm.me",
+        )
+        self.publisher_2 = Publisher(
+            name="Orr Bezalely",
+            email="orr.bezalely@pm.me",
+        )
+
+    def test_publisher_set_passwords(self):
+        self.assertTrue(self.publisher_1.password_hash is None)
+        self.assertTrue(self.publisher_2.password_hash is None)
+
+        self.publisher_1.password = "jude1234"
+        self.publisher_2.password = "orr1234"
+
+        self.assertFalse(self.publisher_1.password_hash is None)
+        self.assertFalse(self.publisher_2.password_hash is None)
 
 
 if __name__ == "__main__":
