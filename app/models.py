@@ -9,6 +9,7 @@ foreign key on the :class:`Post` relation.
 """
 
 from datetime import datetime
+from secrets import randbelow
 
 from werkzeug.security import check_password_hash, generate_password_hash
 
