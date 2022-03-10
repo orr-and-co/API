@@ -1,3 +1,4 @@
+import re
 import string
 from secrets import randbelow
 
@@ -5,12 +6,12 @@ from flask import abort, jsonify, request
 
 from .. import db
 from ..models import Publisher
-from . import app
+from . import api
 
 PASSWORD_CHARACTERS = string.digits + string.ascii_letters + string.punctuation
 
 
-@app.route("/api/publisher", methods=["PUT"])
+@api.route("/publisher", methods=["PUT"])
 def create_publisher():
     """
 
@@ -44,7 +45,7 @@ def create_publisher():
         abort(400)
 
     # check if the email is invalid
-    if "@" not in email or "." not in email:
+    if not re.match(r"\S+@\S+\.\S+", email):
         abort(400)
 
     # if a publisher already exists with this email, abort
@@ -69,7 +70,7 @@ def create_publisher():
         return jsonify({"name": name, "email": email, "password": password})
 
 
-@app.route("/api/publisher", methods=["GET"])
+@api.route("/publisher", methods=["GET"])
 def get_publisher():
     """
     Get name and email of publisher by ID. Authorization required
@@ -89,7 +90,13 @@ def get_publisher():
                 "email": "email"
             }
     """
+    if request.json is None:
+        abort(400)
+
     id = request.json.get("id")
+
+    if id is None:
+        abort(400)
 
     publisher = Publisher.query.get(id)
 

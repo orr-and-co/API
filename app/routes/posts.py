@@ -1,7 +1,7 @@
-from . import app
+from . import api
 
 
-@app.route("/api/posts/recent", methods=["GET"])
+@api.route("/posts/recent", methods=["GET"])
 def recent_posts():
     """
     Get a page of recent posts.
@@ -26,7 +26,7 @@ def recent_posts():
     pass
 
 
-@app.route("/api/posts", methods=["GET"])
+@api.route("/posts", methods=["GET"])
 def get_posts():
     """
     Get a specific :class:`Post`. Used when loading a post in full and not just the
