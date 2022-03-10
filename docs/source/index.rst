@@ -15,7 +15,16 @@ Routes
 
 This is the section you should use if you're programming a frontend.
 
-.. automodule:: app.routes
+Publisher
+---------
+
+.. automodule:: app.routes.publishers
+   :members:
+
+Post
+----
+
+.. automodule:: app.routes.posts
    :members:
 
 Models

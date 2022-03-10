@@ -8,3 +8,14 @@ class Config:
         os.environ.get("DATABASE_URI") or "sqlite:///../data.sqlite"
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    @staticmethod
+    def init_app(app):
+        pass
+
+
+class TestConfig(Config):
+    SQLALCHEMY_DATABASE_URI = "sqlite://"
+
+
+config = {"default": Config, "testing": TestConfig}
