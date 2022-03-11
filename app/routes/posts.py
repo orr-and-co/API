@@ -1,3 +1,8 @@
+from datetime import datetime
+
+from flask import jsonify, request
+
+from ..models import Post
 from . import api
 
 
@@ -23,7 +28,27 @@ def recent_posts():
                 "published_at": "time"
             }
     """
-    pass
+    if request.json is not None:
+        page = request.json.get("page") or 1
+    else:
+        page = 1
+
+    posts = (
+        Post.query.order_by(Post.published_at.desc())
+        .filter(Post.published_at <= datetime.now())
+        .paginate(page, 15)
+    )
+
+    return jsonify(
+        [
+            {
+                "title": post.title,
+                "content": post.content,
+                "published_at": post.published_at,
+            }
+            for post in posts.items
+        ]
+    )
 
 
 @api.route("/posts", methods=["GET"])
