@@ -17,7 +17,7 @@ def create_publisher():
 
     Create new publisher. Authorization required.
 
-    **Route:** /api/publisher/
+    **Route:** /api/v1/publisher/
 
     **Method:** PUT
 
@@ -75,7 +75,7 @@ def get_publisher():
     """
     Get name and email of publisher by ID. Authorization required
 
-    **Route:** /api/publisher/
+    **Route:** /api/v1/publisher/
 
     **Method:** GET
 

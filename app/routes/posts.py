@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from flask import jsonify, request
+from flask import abort, jsonify, request
 
 from ..models import Post
 from . import api
@@ -11,7 +11,7 @@ def recent_posts():
     """
     Get a page of recent posts.
 
-    **Route**: /api/posts/recent
+    **Route**: /api/v1/posts/recent
 
     **Method**: GET
 
@@ -57,7 +57,7 @@ def get_posts():
     Get a specific :class:`Post`. Used when loading a post in full and not just the
         preview.
 
-    **Route**: /api/posts
+    **Route**: /api/v1/posts
 
     **Method**: GET
 
@@ -66,4 +66,28 @@ def get_posts():
 
     :return: :class:`Post`
     """
-    pass
+    if request.json is None:
+        abort(400)
+
+    id = request.json.get("id")
+
+    if id is None:
+        abort(400)
+
+    post = Post.query.get(id)
+
+    if post is not None:
+        json_data = {
+            "title": post.title,
+            "content": post.content,
+            "link": post.link,
+            "published_at": post.published_at,
+            "publisher": {
+                "name": post.publisher.name if post.publisher is not None else None
+            },
+            "followup": post.followup_id,
+        }
+
+        return jsonify(json_data)
+    else:
+        abort(404)

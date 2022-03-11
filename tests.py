@@ -147,8 +147,21 @@ class PostRouteTest(unittest.TestCase):
         db.create_all()
         self.client = self.app.test_client()
 
+        self.publisher_1 = Publisher(
+            name="Tyler Durden",
+            email="narrator@pm.me",
+        )
+
+        db.session.add(self.publisher_1)
+        db.session.flush()
+
         self.posts = [
-            Post(title=title, content=title, published_at=datetime.fromisoformat(date))
+            Post(
+                title=title,
+                content=title,
+                published_at=datetime.fromisoformat(date),
+                publisher=self.publisher_1,
+            )
             for title, date in zip(
                 ["1", "2", "3", "4", "5", "6"],
                 [
@@ -209,10 +222,15 @@ class PostRouteTest(unittest.TestCase):
             self.assertEqual(post["title"], str(count))
 
     def test_get_post(self):
-        req = self.client.get("/api/v1/posts", json={"id": 1})
+        req1 = self.client.get("/api/v1/posts", json={"id": 1})
 
-        self.assertEqual(req.status_code, 200)
-        self.assertEqual(req.json["title"], "1")
+        self.assertEqual(req1.status_code, 200)
+        self.assertEqual(req1.json["title"], "1")
+        self.assertEqual(req1.json["publisher"]["name"], "Tyler Durden")
+
+        req2 = self.client.get("/api/v1/posts", json={"id": 100})
+
+        self.assertEqual(req2.status_code, 404)
 
 
 if __name__ == "__main__":
