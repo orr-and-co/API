@@ -14,7 +14,6 @@ PASSWORD_CHARACTERS = string.digits + string.ascii_letters + string.punctuation
 @api.route("/publisher", methods=["PUT"])
 def create_publisher():
     """
-
     Create new publisher. Authorization required.
 
     **Route:** /api/v1/publisher/
