@@ -5,6 +5,7 @@ from flask import abort, jsonify, request
 from .. import db
 from ..models import Post
 from . import api
+from .authentication import auth
 
 
 @api.route("/posts/recent", methods=["GET"])
@@ -99,6 +100,7 @@ def get_posts():
 
 
 @api.route("/posts", methods=["POST"])
+@auth.login_required
 def create_posts():
     """
     Create a new :class:`Post`. Requires authorization

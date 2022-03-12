@@ -7,10 +7,11 @@ Reference: :download:`Deliverable 2 <../ref/deliverable-2.pdf>`.
 The reference was not followed regarding follow up posts. This was instead set as a
 foreign key on the :class:`Post` relation.
 """
-
+import time
 from datetime import datetime
-from secrets import randbelow
 
+import jwt
+from flask import current_app
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app import db
@@ -68,6 +69,29 @@ class Publisher(db.Model):
     def check_password(self, password):
         """Check that the provided password hashes to the hash stored in the database"""
         return check_password_hash(self.password_hash, password)
+
+    @classmethod
+    def verify_auth_token(cls, token):
+        try:
+            data = jwt.decode(
+                token,
+                current_app.config["SECRET_KEY"],
+                algorithms="HS256",
+            )
+        except:
+            return None
+        else:
+            if data["expires"] > time.time():
+                return cls.query.get(data["id"])
+            else:
+                return None
+
+    def generate_auth_token(self, expiration):
+        return jwt.encode(
+            {"id": self.id, "expires": time.time() + expiration},
+            current_app.config["SECRET_KEY"],
+            algorithm="HS256",
+        )
 
 
 class Post(db.Model):

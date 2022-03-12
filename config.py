@@ -15,6 +15,7 @@ class Config:
 
 
 class TestConfig(Config):
+    SECRET_KEY = "test_secret_key"
     SQLALCHEMY_DATABASE_URI = "sqlite://"
 
 

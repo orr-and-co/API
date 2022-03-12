@@ -7,11 +7,13 @@ from flask import abort, jsonify, request
 from .. import db
 from ..models import Publisher
 from . import api
+from .authentication import auth
 
 PASSWORD_CHARACTERS = string.digits + string.ascii_letters + string.punctuation
 
 
 @api.route("/publisher", methods=["PUT"])
+@auth.login_required
 def create_publisher():
     """
     Create new publisher. Authorization required.
@@ -70,6 +72,7 @@ def create_publisher():
 
 
 @api.route("/publisher", methods=["GET"])
+@auth.login_required
 def get_publisher():
     """
     Get name and email of publisher by ID. Authorization required
