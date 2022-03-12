@@ -6,6 +6,13 @@ from . import api
 
 auth = HTTPBasicAuth()
 
+"""
+Authentication scheme provided by Flask-HTTPAuth
+
+Uses standard Authentication header, with "Basic TOKEN", where TOKEN is the base64 
+    encoding of "username:password".
+"""
+
 
 @auth.verify_password
 def verify_password(email_or_token, password):
