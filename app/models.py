@@ -126,7 +126,7 @@ class Post(db.Model):
     link = db.Column(db.String(500))
 
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.now())
-    published_at = db.Column(db.DateTime, default=datetime.now())
+    published_at = db.Column(db.DateTime)
 
     likes = db.Column(db.Integer, nullable=False, default=0)
     dislikes = db.Column(db.Integer, nullable=False, default=0)

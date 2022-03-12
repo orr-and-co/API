@@ -2,6 +2,7 @@ from datetime import datetime
 
 from flask import abort, jsonify, request
 
+from .. import db
 from ..models import Post
 from . import api
 
@@ -77,17 +78,71 @@ def get_posts():
     post = Post.query.get(id)
 
     if post is not None:
-        json_data = {
-            "title": post.title,
-            "content": post.content,
-            "link": post.link,
-            "published_at": post.published_at,
-            "publisher": {
-                "name": post.publisher.name if post.publisher is not None else None
-            },
-            "followup": post.followup_id,
-        }
+        if post.published_at is None or post.published_at > datetime.now():
+            abort(404)
 
-        return jsonify(json_data)
+        else:
+            json_data = {
+                "title": post.title,
+                "content": post.content,
+                "link": post.link,
+                "published_at": post.published_at,
+                "publisher": {
+                    "name": post.publisher.name if post.publisher is not None else None
+                },
+                "followup": post.followup_id,
+            }
+
+            return jsonify(json_data)
     else:
         abort(404)
+
+
+@api.route("/posts", methods=["POST"])
+def create_posts():
+    """
+    Create a new :class:`Post`. Requires authorization
+
+    **Route**: /api/v1/posts
+
+    **Method**: POST
+
+    :param title: The title of the Post.
+    :type title: str
+
+    :param content: Markdown content of the Post.
+    :type content: str
+
+    :param link: Link of the Post if available.
+    :type link: str
+
+    :param publish_at: When to publish this post. If not specified, this post will be held
+        as a draft. Provide a UNIX timestamp
+    :type publish_at: int
+
+    :return: ID of the new post
+    """
+    if request.json is None:
+        abort(400)
+
+    title = request.json.get("title")
+
+    if title is None:
+        abort(400)
+
+    content = request.json.get("content")
+    link = request.json.get("link")
+
+    if (content or link) is None:
+        abort(400)
+
+    published_at = request.json.get("publish_at") and datetime.fromtimestamp(
+        request.json.get("publish_at")
+    )
+
+    post = Post(title=title, content=content, link=link, published_at=published_at)
+
+    db.session.add(post)
+    db.session.commit()
+
+    return jsonify({"id": post.id})

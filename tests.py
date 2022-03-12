@@ -1,4 +1,5 @@
 import re
+import time
 import unittest
 from datetime import datetime, timedelta
 
@@ -231,6 +232,77 @@ class PostRouteTest(unittest.TestCase):
         req2 = self.client.get("/api/v1/posts", json={"id": 100})
 
         self.assertEqual(req2.status_code, 404)
+
+
+class PostRouteTest2(unittest.TestCase):
+    def setUp(self):
+        self.app = create_app("testing")
+        self.app_context = self.app.app_context()
+        self.app_context.push()
+        db.create_all()
+        self.client = self.app.test_client()
+
+    def tearDown(self):
+        db.session.remove()
+        db.drop_all()
+        self.app_context.pop()
+
+    def test_create_post_400(self):
+        req1 = self.client.post("/api/v1/posts")
+        req2 = self.client.post("/api/v1/posts", json={})
+        req3 = self.client.post("/api/v1/posts", json={"title": "abc"})
+        req4 = self.client.post("/api/v1/posts", json={"content": "abc"})
+        req5 = self.client.post("/api/v1/posts", json={"content": "abc", "link": "abc"})
+        req6 = self.client.post("/api/v1/posts", json={"content": "abc", "link": "abc"})
+        req7 = self.client.post("/api/v1/posts", json={"link": "abc"})
+
+        self.assertEqual(req1.status_code, 400)
+        self.assertEqual(req2.status_code, 400)
+        self.assertEqual(req3.status_code, 400)
+        self.assertEqual(req4.status_code, 400)
+        self.assertEqual(req5.status_code, 400)
+        self.assertEqual(req6.status_code, 400)
+        self.assertEqual(req7.status_code, 400)
+
+    def test_create_post_now(self):
+        req1 = self.client.post(
+            "/api/v1/posts",
+            json={
+                "title": "id like to interject for a moment",
+                "content": "What you are refering to as Linux is in fact GNU/Linux, or as I have begun saying, GNU slash Linux.",
+                "publish_at": time.time() - 1,
+            },
+        )
+
+        self.assertEqual(req1.status_code, 200)
+
+        req2 = self.client.get("/api/v1/posts", json={"id": req1.json["id"]})
+        req3 = self.client.get("/api/v1/posts/recent")
+
+        self.assertEqual(req2.status_code, 200)
+        self.assertEqual(len(req3.json), 1)
+        self.assertEqual(req2.json["title"], "id like to interject for a moment")
+        self.assertEqual(
+            req3.json[0]["content"],
+            "What you are refering to as Linux is in fact GNU/Linux, or as I have begun saying, GNU slash Linux.",
+        )
+
+    def test_create_post_future(self):
+        req1 = self.client.post(
+            "/api/v1/posts",
+            json={
+                "title": "id like to interject for a moment",
+                "content": "What you are refering to as Linux is in fact GNU/Linux, or as I have begun saying, GNU slash Linux.",
+            },
+        )
+
+        self.assertEqual(req1.status_code, 200)
+
+        req2 = self.client.get("/api/v1/posts", json={"id": req1.json["id"]})
+        req3 = self.client.get("/api/v1/posts/recent")
+
+        self.assertEqual(req2.status_code, 404)
+        self.assertEqual(req3.json, [])
 
 
 if __name__ == "__main__":
