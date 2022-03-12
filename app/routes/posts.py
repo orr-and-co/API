@@ -8,7 +8,7 @@ from . import api
 from .authentication import auth
 
 
-@api.route("/posts/recent", methods=["GET"])
+@api.route("/posts/recent/", methods=["GET"])
 def recent_posts():
     """
     Get a page of recent posts.
@@ -53,7 +53,7 @@ def recent_posts():
     )
 
 
-@api.route("/posts", methods=["GET"])
+@api.route("/posts/", methods=["GET"])
 def get_posts():
     """
     Get a specific :class:`Post`. Used when loading a post in full and not just the
@@ -87,7 +87,7 @@ def get_posts():
                 "title": post.title,
                 "content": post.content,
                 "link": post.link,
-                "published_at": post.published_at,
+                "published_at": post.published_at.timestamp(),
                 "publisher": {
                     "name": post.publisher.name if post.publisher is not None else None
                 },
@@ -99,7 +99,7 @@ def get_posts():
         abort(404)
 
 
-@api.route("/posts", methods=["POST"])
+@api.route("/posts/", methods=["POST"])
 @auth.login_required
 def create_posts():
     """
@@ -138,9 +138,10 @@ def create_posts():
     if (content or link) is None:
         abort(400)
 
-    published_at = request.json.get("publish_at") and datetime.fromtimestamp(
-        request.json.get("publish_at")
-    )
+    if request.json.get("publish_at") is not None:
+        published_at = datetime.fromtimestamp(request.json.get("publish_at"))
+    else:
+        published_at = None
 
     post = Post(title=title, content=content, link=link, published_at=published_at)
 

@@ -77,9 +77,9 @@ class PublisherRouteTest(unittest.TestCase):
         self.app_context.pop()
 
     def test_authorization(self):
-        req1 = self.client.get("/api/v1/publisher", json={"id": 1})
+        req1 = self.client.get("/api/v1/publisher/", json={"id": 1})
         req2 = self.client.put(
-            "/api/v1/publisher",
+            "/api/v1/publisher/",
             json={"name": "Taliesin Oldridge", "email": "to@pm.me"},
         )
 
@@ -87,18 +87,18 @@ class PublisherRouteTest(unittest.TestCase):
         self.assertEqual(req2.status_code, 401)
 
     def test_get_publisher_400(self):
-        req1 = self.client.get("/api/v1/publisher", headers=self.headers)
-        req2 = self.client.get("/api/v1/publisher", json={}, headers=self.headers)
+        req1 = self.client.get("/api/v1/publisher/", headers=self.headers)
+        req2 = self.client.get("/api/v1/publisher/", json={}, headers=self.headers)
 
         self.assertEqual(req1.status_code, 400)
         self.assertEqual(req2.status_code, 400)
 
     def test_get_publisher_404(self):
         req1 = self.client.get(
-            "/api/v1/publisher", json={"id": 3}, headers=self.headers
+            "/api/v1/publisher/", json={"id": 3}, headers=self.headers
         )
         req2 = self.client.get(
-            "/api/v1/publisher", json={"id": "a"}, headers=self.headers
+            "/api/v1/publisher/", json={"id": "a"}, headers=self.headers
         )
 
         self.assertEqual(req1.status_code, 404)
@@ -106,10 +106,10 @@ class PublisherRouteTest(unittest.TestCase):
 
     def test_get_publisher(self):
         req1 = self.client.get(
-            "/api/v1/publisher", json={"id": self.publisher_1.id}, headers=self.headers
+            "/api/v1/publisher/", json={"id": self.publisher_1.id}, headers=self.headers
         )
         req2 = self.client.get(
-            "/api/v1/publisher", json={"id": self.publisher_2.id}, headers=self.headers
+            "/api/v1/publisher/", json={"id": self.publisher_2.id}, headers=self.headers
         )
 
         self.assertEqual(req1.status_code, 200)
@@ -123,7 +123,7 @@ class PublisherRouteTest(unittest.TestCase):
 
     def test_create_publisher_409(self):
         req1 = self.client.put(
-            "/api/v1/publisher",
+            "/api/v1/publisher/",
             json={"name": self.publisher_1.name, "email": self.publisher_1.email},
             headers=self.headers,
         )
@@ -132,22 +132,22 @@ class PublisherRouteTest(unittest.TestCase):
 
     def test_create_publisher_400(self):
         req1 = self.client.put(
-            "/api/v1/publisher",
+            "/api/v1/publisher/",
             json={"name": "Jude", "email": "invalid"},
             headers=self.headers,
         )
         req2 = self.client.put(
-            "/api/v1/publisher",
+            "/api/v1/publisher/",
             json={"name": "Jude", "email": "invalid@also"},
             headers=self.headers,
         )
         req3 = self.client.put(
-            "/api/v1/publisher",
+            "/api/v1/publisher/",
             json={"name": "Jude", "email": "invalid.also"},
             headers=self.headers,
         )
         req4 = self.client.put(
-            "/api/v1/publisher",
+            "/api/v1/publisher/",
             json={"name": "Jude", "email": "invalid@also. "},
             headers=self.headers,
         )
@@ -160,7 +160,7 @@ class PublisherRouteTest(unittest.TestCase):
     def test_create_publisher(self):
         # put new publisher to API
         req1 = self.client.put(
-            "/api/v1/publisher",
+            "/api/v1/publisher/",
             json={"name": "Taliesin Oldridge", "email": "to@pm.me"},
             headers=self.headers,
         )
@@ -172,7 +172,7 @@ class PublisherRouteTest(unittest.TestCase):
 
         # retrieve the publisher back from the API
         req2 = self.client.get(
-            "/api/v1/publisher",
+            "/api/v1/publisher/",
             json={"id": self.publisher_2.id + 1},
             headers=self.headers,
         )
@@ -236,7 +236,7 @@ class PostRouteTest(unittest.TestCase):
         self.app_context.pop()
 
     def test_recent_posts(self):
-        req = self.client.get("/api/v1/posts/recent")
+        req = self.client.get("/api/v1/posts/recent/")
 
         self.assertEqual(req.status_code, 200)
         self.assertEqual(req.json[0]["title"], "2")
@@ -250,9 +250,9 @@ class PostRouteTest(unittest.TestCase):
             self.assertEqual(req.json[i]["title"], str(i + 1))
 
     def test_posts_page(self):
-        req1 = self.client.get("/api/v1/posts/recent", json={"page": 2})
-        req2 = self.client.get("/api/v1/posts/recent", json={"page": 3})
-        req3 = self.client.get("/api/v1/posts/recent", json={"page": 4})
+        req1 = self.client.get("/api/v1/posts/recent/", json={"page": 2})
+        req2 = self.client.get("/api/v1/posts/recent/", json={"page": 3})
+        req3 = self.client.get("/api/v1/posts/recent/", json={"page": 4})
 
         self.assertEqual(req1.status_code, 200)
         self.assertEqual(req2.status_code, 200)
@@ -265,13 +265,13 @@ class PostRouteTest(unittest.TestCase):
             self.assertEqual(post["title"], str(count))
 
     def test_get_post(self):
-        req1 = self.client.get("/api/v1/posts", json={"id": 1})
+        req1 = self.client.get("/api/v1/posts/", json={"id": 1})
 
         self.assertEqual(req1.status_code, 200)
         self.assertEqual(req1.json["title"], "1")
         self.assertEqual(req1.json["publisher"]["name"], "Tyler Durden")
 
-        req2 = self.client.get("/api/v1/posts", json={"id": 100})
+        req2 = self.client.get("/api/v1/posts/", json={"id": 100})
 
         self.assertEqual(req2.status_code, 404)
 
@@ -304,34 +304,34 @@ class PostRouteTest2(unittest.TestCase):
         self.app_context.pop()
 
     def test_authorization(self):
-        req1 = self.client.post("/api/v1/posts")
+        req1 = self.client.post("/api/v1/posts/")
 
         self.assertEqual(req1.status_code, 401)
 
     def test_create_post_400(self):
         req1 = self.client.post(
-            "/api/v1/posts",
+            "/api/v1/posts/",
             headers=self.headers,
         )
-        req2 = self.client.post("/api/v1/posts", json={}, headers=self.headers)
+        req2 = self.client.post("/api/v1/posts/", json={}, headers=self.headers)
         req3 = self.client.post(
-            "/api/v1/posts", json={"title": "abc"}, headers=self.headers
+            "/api/v1/posts/", json={"title": "abc"}, headers=self.headers
         )
         req4 = self.client.post(
-            "/api/v1/posts", json={"content": "abc"}, headers=self.headers
+            "/api/v1/posts/", json={"content": "abc"}, headers=self.headers
         )
         req5 = self.client.post(
-            "/api/v1/posts",
+            "/api/v1/posts/",
             json={"content": "abc", "link": "abc"},
             headers=self.headers,
         )
         req6 = self.client.post(
-            "/api/v1/posts",
+            "/api/v1/posts/",
             json={"content": "abc", "link": "abc"},
             headers=self.headers,
         )
         req7 = self.client.post(
-            "/api/v1/posts", json={"link": "abc"}, headers=self.headers
+            "/api/v1/posts/", json={"link": "abc"}, headers=self.headers
         )
 
         self.assertEqual(req1.status_code, 400)
@@ -344,7 +344,7 @@ class PostRouteTest2(unittest.TestCase):
 
     def test_create_post_now(self):
         req1 = self.client.post(
-            "/api/v1/posts",
+            "/api/v1/posts/",
             json={
                 "title": "id like to interject for a moment",
                 "content": "What you are refering to as Linux is in fact GNU/Linux, or as I have begun saying, GNU slash Linux.",
@@ -355,8 +355,8 @@ class PostRouteTest2(unittest.TestCase):
 
         self.assertEqual(req1.status_code, 200)
 
-        req2 = self.client.get("/api/v1/posts", json={"id": req1.json["id"]})
-        req3 = self.client.get("/api/v1/posts/recent")
+        req2 = self.client.get("/api/v1/posts/", json={"id": req1.json["id"]})
+        req3 = self.client.get("/api/v1/posts/recent/")
 
         self.assertEqual(req2.status_code, 200)
         self.assertEqual(len(req3.json), 1)
@@ -368,7 +368,7 @@ class PostRouteTest2(unittest.TestCase):
 
     def test_create_post_future(self):
         req1 = self.client.post(
-            "/api/v1/posts",
+            "/api/v1/posts/",
             json={
                 "title": "id like to interject for a moment",
                 "content": "What you are refering to as Linux is in fact GNU/Linux, or as I have begun saying, GNU slash Linux.",
@@ -378,8 +378,8 @@ class PostRouteTest2(unittest.TestCase):
 
         self.assertEqual(req1.status_code, 200)
 
-        req2 = self.client.get("/api/v1/posts", json={"id": req1.json["id"]})
-        req3 = self.client.get("/api/v1/posts/recent")
+        req2 = self.client.get("/api/v1/posts/", json={"id": req1.json["id"]})
+        req3 = self.client.get("/api/v1/posts/recent/")
 
         self.assertEqual(req2.status_code, 404)
         self.assertEqual(req3.json, [])

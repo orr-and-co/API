@@ -12,7 +12,7 @@ from .authentication import auth
 PASSWORD_CHARACTERS = string.digits + string.ascii_letters + string.punctuation
 
 
-@api.route("/publisher", methods=["PUT"])
+@api.route("/publisher/", methods=["PUT"])
 @auth.login_required
 def create_publisher():
     """
@@ -71,7 +71,7 @@ def create_publisher():
         return jsonify({"name": name, "email": email, "password": password})
 
 
-@api.route("/publisher", methods=["GET"])
+@api.route("/publisher/", methods=["GET"])
 @auth.login_required
 def get_publisher():
     """
