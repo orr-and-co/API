@@ -49,8 +49,7 @@ class PublisherRouteTest(unittest.TestCase):
         self.client = self.app.test_client()
 
         self.publisher_1 = Publisher(
-            name="Jude Southworth",
-            email="judesouthworth@pm.me",
+            name="Jude Southworth", email="judesouthworth@pm.me", full_admin=True
         )
         self.publisher_2 = Publisher(
             name="Orr Bezalely",
@@ -65,6 +64,16 @@ class PublisherRouteTest(unittest.TestCase):
             "Authorization": "Basic {}".format(
                 b64encode(
                     "{}:".format(self.publisher_1.generate_auth_token(120)).encode(
+                        "utf-8"
+                    )
+                ).decode("utf-8")
+            )
+        }
+
+        self.headers_orr = {
+            "Authorization": "Basic {}".format(
+                b64encode(
+                    "{}:".format(self.publisher_2.generate_auth_token(120)).encode(
                         "utf-8"
                     )
                 ).decode("utf-8")
@@ -120,6 +129,15 @@ class PublisherRouteTest(unittest.TestCase):
 
         self.assertEqual(req2.json["name"], self.publisher_2.name)
         self.assertEqual(req2.json["email"], self.publisher_2.email)
+
+    def test_create_publisher_403(self):
+        req1 = self.client.put(
+            "/api/v1/publisher/",
+            json={"name": "Taliesin Oldridge", "email": "to@pm.me"},
+            headers=self.headers_orr,
+        )
+
+        self.assertEqual(req1.status_code, 403)
 
     def test_create_publisher_409(self):
         req1 = self.client.put(
@@ -180,6 +198,27 @@ class PublisherRouteTest(unittest.TestCase):
         self.assertEqual(req2.status_code, 200)
         self.assertEqual(req2.json["name"], "Taliesin Oldridge")
         self.assertEqual(req2.json["email"], "to@pm.me")
+
+    def test_update_publisher(self):
+        req1 = self.client.patch(
+            "/api/v1/publisher/", json={"email": "js@pm.me"}, headers=self.headers
+        )
+
+        self.assertEqual(req1.status_code, 201)
+
+        req2 = self.client.get(
+            "/api/v1/publisher/", json={"id": self.publisher_1.id}, headers=self.headers
+        )
+
+        self.assertEqual(req2.json["email"], "js@pm.me")
+
+        previous_hash = self.publisher_1.password_hash
+        req3 = self.client.patch(
+            "/api/v1/publisher/", json={"password": "1234"}, headers=self.headers
+        )
+
+        self.assertEqual(req3.status_code, 201)
+        self.assertNotEqual(self.publisher_1.password_hash, previous_hash)
 
 
 class PostRouteTest(unittest.TestCase):

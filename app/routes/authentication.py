@@ -22,16 +22,22 @@ def verify_password(email_or_token, password):
     if password == "":
         g.current_user = Publisher.verify_auth_token(email_or_token)
         g.token_used = True
-        return g.current_user is not None
+        if g.current_user is not None:
+            return g.current_user
+        else:
+            return None
 
     publisher = Publisher.query.filter_by(email=email_or_token.lower()).first()
     if not publisher:
-        return False
+        return None
 
     g.current_user = publisher
     g.token_used = False
 
-    return publisher.check_password(password)
+    if publisher.check_password(password):
+        return g.current_user
+    else:
+        return None
 
 
 @api.route("/tokens/", methods=["POST"])

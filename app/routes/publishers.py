@@ -23,7 +23,9 @@ def create_publisher():
     **Method:** PUT
 
     :param name: The name of the new :class:`Publisher`
+    :type name: str
     :param email: The valid email of the new :class:`Publisher`
+    :type email: str
 
     :returns: :class:`Publisher` *with* plaintext password. The :class:`Publisher` will be
         prompted to change this on login. This is the **only** time you can view the
@@ -38,6 +40,9 @@ def create_publisher():
             }
 
     """
+    if not auth.current_user().full_admin:
+        abort(403)
+
     name = request.json.get("name")
     email = request.json.get("email")
 
@@ -82,6 +87,7 @@ def get_publisher():
     **Method:** GET
 
     :param id: The ID of the publisher to lookup
+    :type id: int
 
     :returns: :class:`Publisher`
 
@@ -108,3 +114,32 @@ def get_publisher():
         return jsonify(json_data)
     else:
         abort(404)
+
+
+@api.route("/publisher/", methods=["PATCH"])
+@auth.login_required
+def update_publisher():
+    """
+    Update :class:`Publisher` details.
+
+    :param password: New password
+    :type password: str
+    :param email: New email
+    :type email: str
+
+    :return: 201
+    """
+    if request.json is None:
+        abort(400)
+
+    publisher = auth.current_user()
+
+    if (password := request.json.get("password")) is not None:
+        publisher.password = password
+
+    if (email := request.json.get("email")) is not None:
+        publisher.email = email
+
+    db.session.commit()
+
+    return "", 201
