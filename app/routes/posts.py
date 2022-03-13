@@ -46,7 +46,7 @@ def recent_posts():
             {
                 "title": post.title,
                 "content": post.content,
-                "published_at": post.published_at,
+                "published_at": post.published_at.timestamp(),
             }
             for post in posts.items
         ]
