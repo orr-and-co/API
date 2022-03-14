@@ -9,6 +9,8 @@ class Config:
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+    ADMIN_OVERRIDE = os.environ.get("ADMIN_OVERRIDE")
+
     @staticmethod
     def init_app(app):
         pass
