@@ -35,25 +35,25 @@ def recent_posts():
         page = int(request.args.get("page") or 1)
     except ValueError:
         abort(400)
+    else:
+        posts = (
+            Post.query.order_by(Post.published_at.desc())
+            .filter(Post.published_at <= datetime.now())
+            .paginate(page, 15)
+        )
 
-    posts = (
-        Post.query.order_by(Post.published_at.desc())
-        .filter(Post.published_at <= datetime.now())
-        .paginate(page, 15)
-    )
-
-    return jsonify(
-        [
-            {
-                "id": post.id,
-                "title": post.title,
-                "content": post.content,
-                "published_at": post.published_at.timestamp(),
-                "preview": post.preview_image,
-            }
-            for post in posts.items
-        ]
-    )
+        return jsonify(
+            [
+                {
+                    "id": post.id,
+                    "title": post.title,
+                    "content": post.content,
+                    "published_at": post.published_at.timestamp(),
+                    "preview": post.preview_image,
+                }
+                for post in posts.items
+            ]
+        )
 
 
 @api.route("/posts/<int:id>/", methods=["GET"])
