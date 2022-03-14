@@ -25,6 +25,7 @@ def recent_posts():
     .. code-block:: json
 
             {
+                "id": 1,
                 "title": "title",
                 "content": "content",
                 "published_at": "time"
@@ -44,6 +45,7 @@ def recent_posts():
     return jsonify(
         [
             {
+                "id": post.id,
                 "title": post.title,
                 "content": post.content,
                 "published_at": post.published_at.timestamp(),
