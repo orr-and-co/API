@@ -76,13 +76,13 @@ def create_publisher():
         return jsonify({"name": name, "email": email, "password": password})
 
 
-@api.route("/publisher/", methods=["GET"])
+@api.route("/publisher/<int:id>/", methods=["GET"])
 @auth.login_required
-def get_publisher():
+def get_publisher(id: int):
     """
     Get name and email of publisher by ID. Authorization required
 
-    **Route:** /api/v1/publisher/
+    **Route:** /api/v1/publisher/id/
 
     **Method:** GET
 
@@ -98,11 +98,6 @@ def get_publisher():
                 "email": "email"
             }
     """
-    if request.json is None:
-        abort(400)
-
-    id = request.json.get("id")
-
     if id is None:
         abort(400)
 

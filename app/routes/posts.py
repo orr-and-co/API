@@ -13,7 +13,7 @@ def recent_posts():
     """
     Get a page of recent posts.
 
-    **Route**: /api/v1/posts/recent
+    **Route**: /api/v1/posts/recent/?page=page
 
     **Method**: GET
 
@@ -31,10 +31,10 @@ def recent_posts():
                 "published_at": "time"
             }
     """
-    if request.json is not None:
-        page = request.json.get("page") or 1
-    else:
-        page = 1
+    try:
+        page = int(request.args.get("page") or 1)
+    except ValueError:
+        abort(400)
 
     posts = (
         Post.query.order_by(Post.published_at.desc())
@@ -49,19 +49,20 @@ def recent_posts():
                 "title": post.title,
                 "content": post.content,
                 "published_at": post.published_at.timestamp(),
+                "preview": post.preview_image,
             }
             for post in posts.items
         ]
     )
 
 
-@api.route("/posts/", methods=["GET"])
-def get_posts():
+@api.route("/posts/<int:id>/", methods=["GET"])
+def get_posts(id: int):
     """
     Get a specific :class:`Post`. Used when loading a post in full and not just the
-        preview.
+        preview. Substitute **id** in the route for the ID to get.
 
-    **Route**: /api/v1/posts
+    **Route**: /api/v1/posts/id/
 
     **Method**: GET
 
@@ -70,11 +71,6 @@ def get_posts():
 
     :return: :class:`Post`
     """
-    if request.json is None:
-        abort(400)
-
-    id = request.json.get("id")
-
     if id is None:
         abort(400)
 

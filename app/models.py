@@ -125,6 +125,12 @@ class Post(db.Model):
     :param link: Link of the Post if available.
     :type link: str
 
+    :param preview_image: Preview image of post (base 64 encoded)
+    :type preview_image: str
+
+    :param binary_content: Multimedia content of post (base 64 encoded)
+    :type binary_content: str
+
     :param created_at: When this Post was created.
     :type created_at: datetime
 
@@ -145,9 +151,11 @@ class Post(db.Model):
     publisher_id = db.Column(db.Integer, db.ForeignKey(Publisher.id))
     followup_id = db.Column(db.Integer, db.ForeignKey("post.id"))
 
-    title = db.Column(db.String(200), nullable=True)
+    title = db.Column(db.String(200), nullable=False)
     content = db.Column(db.String(8000))
     link = db.Column(db.String(500))
+    preview_image = db.Column(db.Text)
+    binary_content = db.Column(db.Text)
 
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.now())
     published_at = db.Column(db.DateTime)
