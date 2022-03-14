@@ -28,7 +28,8 @@ def recent_posts():
                 "id": 1,
                 "title": "title",
                 "content": "content",
-                "published_at": "time"
+                "published_at": "time",
+                "preview": "preview base64"
             }
     """
     try:
@@ -89,6 +90,7 @@ def get_posts(id: int):
                 "publisher": {
                     "name": post.publisher.name if post.publisher is not None else None
                 },
+                "media": post.binary_content,
                 "followup": post.followup_id,
             }
 
@@ -116,6 +118,12 @@ def create_posts():
     :param link: Link of the Post if available.
     :type link: str
 
+    :param preview_image: Base 64 encoded review image of the post.
+    :type preview_image: str
+
+    :param binary_content: Base 64 encoded multimedia of the post.
+    :type binary_content: str
+
     :param publish_at: When to publish this post. If not specified, this post will be held
         as a draft. Provide a UNIX timestamp
     :type publish_at: int
@@ -132,6 +140,8 @@ def create_posts():
 
     content = request.json.get("content")
     link = request.json.get("link")
+    preview_image = request.json.get("preview_image")
+    binary_content = request.json.get("binary_content")
 
     if (content or link) is None:
         abort(400)
@@ -141,7 +151,14 @@ def create_posts():
     else:
         published_at = None
 
-    post = Post(title=title, content=content, link=link, published_at=published_at)
+    post = Post(
+        title=title,
+        content=content,
+        link=link,
+        published_at=published_at,
+        preview_image=preview_image,
+        binary_content=binary_content,
+    )
 
     db.session.add(post)
     db.session.commit()
