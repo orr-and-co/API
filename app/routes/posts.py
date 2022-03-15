@@ -158,9 +158,86 @@ def create_posts():
         published_at=published_at,
         preview_image=preview_image,
         binary_content=binary_content,
+        publisher=auth.current_user(),
     )
 
     db.session.add(post)
     db.session.commit()
 
     return jsonify({"id": post.id})
+
+
+@api.route("/posts/<int:id>/followup/", methods=["POST"])
+@auth.login_required
+def create_followup_posts(id: int):
+    """
+    Create a new :class:`Post` that follows up on an existing :class:`Post`. Requires authorization
+
+    **Route**: /api/v1/posts/ID/followup/
+
+    **Method**: POST
+
+    :param title: The title of the Post.
+    :type title: str
+
+    :param content: Markdown content of the Post.
+    :type content: str
+
+    :param link: Link of the Post if available.
+    :type link: str
+
+    :param preview_image: Base 64 encoded review image of the post.
+    :type preview_image: str
+
+    :param binary_content: Base 64 encoded multimedia of the post.
+    :type binary_content: str
+
+    :param publish_at: When to publish this post. If not specified, this post will be held
+        as a draft. Provide a UNIX timestamp
+    :type publish_at: int
+
+    :return: ID of the new post
+    """
+    if request.json is None:
+        abort(400)
+
+    title = request.json.get("title")
+
+    if title is None:
+        abort(400)
+
+    content = request.json.get("content")
+    link = request.json.get("link")
+    preview_image = request.json.get("preview_image")
+    binary_content = request.json.get("binary_content")
+
+    if (content or link) is None:
+        abort(400)
+
+    if request.json.get("publish_at") is not None:
+        published_at = datetime.fromtimestamp(request.json.get("publish_at"))
+    else:
+        published_at = None
+
+    post = Post(
+        title=title,
+        content=content,
+        link=link,
+        published_at=published_at,
+        preview_image=preview_image,
+        binary_content=binary_content,
+        publisher=auth.current_user(),
+    )
+
+    previous_post = Post.query.get(id)
+    if previous_post is None:
+        abort(404)
+    else:
+        # flush must be done first to give `post' an ID
+        db.session.add(post)
+        db.session.flush()
+
+        previous_post.followup = post
+        db.session.commit()
+
+        return jsonify({"id": post.id})

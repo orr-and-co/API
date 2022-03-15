@@ -163,8 +163,15 @@ class Post(db.Model):
     likes = db.Column(db.Integer, nullable=False, default=0)
     dislikes = db.Column(db.Integer, nullable=False, default=0)
 
-    publisher = db.relationship("Publisher", foreign_keys="Post.publisher_id")
-    followup = db.relationship("Post", foreign_keys="Post.followup_id")
+    publisher = db.relationship(
+        "Publisher", foreign_keys="Post.publisher_id", backref="posts"
+    )
+    followup = db.relationship(
+        "Post",
+        remote_side=[id],
+        backref="previous",
+        single_parent=True,
+    )
 
 
 class Interest(db.Model):

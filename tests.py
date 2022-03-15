@@ -411,6 +411,40 @@ class PostRouteTest2(unittest.TestCase):
         self.assertEqual(req2.status_code, 404)
         self.assertEqual(req3.json, [])
 
+    def test_create_followup_post(self):
+        req1 = self.client.post(
+            "/api/v1/posts/",
+            json={
+                "title": "id like to interject for a moment",
+                "content": "What you are refering to as Linux is in fact GNU/Linux, or as I have begun saying, GNU slash Linux.",
+                "publish_at": time.time() - 1,
+            },
+            headers=self.headers,
+        )
+
+        self.assertEqual(req1.status_code, 200)
+
+        req2 = self.client.post(
+            "/api/v1/posts/{}/followup/".format(req1.json["id"]),
+            json={
+                "title": "id like to interject for a moment",
+                "content": "Many computer users run a modified version of the GNU system "
+                "every day, without realizing it. Through a peculiar turn of "
+                "events, the version of GNU which is widely used today is "
+                "often called Linux, and many of its users are not aware that "
+                "it is basically the GNU system, developed by the GNU Project",
+                "publish_at": time.time() - 1,
+            },
+            headers=self.headers,
+        )
+
+        self.assertEqual(req2.status_code, 200)
+
+        req3 = self.client.get("/api/v1/posts/{}/".format(req1.json["id"]))
+
+        self.assertEqual(req3.status_code, 200)
+        self.assertEqual(req3.json["followup"], req2.json["id"])
+
 
 if __name__ == "__main__":
     unittest.main()
