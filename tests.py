@@ -446,5 +446,44 @@ class PostRouteTest2(unittest.TestCase):
         self.assertEqual(req3.json["followup"], req2.json["id"])
 
 
+class InterestRouteTest(unittest.TestCase):
+    def setUp(self):
+        self.app = create_app("testing")
+        self.app_context = self.app.app_context()
+        self.app_context.push()
+        db.create_all()
+        self.client = self.app.test_client()
+
+        self.publisher = Publisher()
+        db.session.add(self.publisher)
+        db.session.commit()
+
+        self.headers = {
+            "Authorization": "Basic {}".format(
+                b64encode(
+                    "{}:".format(self.publisher.generate_auth_token(120)).encode(
+                        "utf-8"
+                    )
+                ).decode("utf-8")
+            )
+        }
+
+    def tearDown(self):
+        db.session.remove()
+        db.drop_all()
+        self.app_context.pop()
+
+    def test_authorization(self):
+        req1 = self.client.get("/api/v1/interests/")
+        req2 = self.client.put("/api/v1/interests/")
+        req3 = self.client.patch("/api/v1/interests/abc/")
+        req4 = self.client.delete("/api/v1/interests/abc/")
+
+        self.assertEqual(req1.status_code, 200)
+        self.assertEqual(req2.status_code, 401)
+        self.assertEqual(req3.status_code, 401)
+        self.assertEqual(req4.status_code, 401)
+
+
 if __name__ == "__main__":
     unittest.main()

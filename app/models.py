@@ -207,7 +207,7 @@ class Interest(db.Model):
 
 class PostModification(db.Model):
     """
-    Stores the edit history of a :class:`Post`
+    Stores the edit history of a :class:`Post`. TODO
     """
 
     id = db.Column(db.Integer, autoincrement=True, primary_key=True)
