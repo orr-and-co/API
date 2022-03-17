@@ -5,7 +5,7 @@ from base64 import b64encode
 from datetime import datetime, timedelta
 
 from app import create_app, db
-from app.models import Post, Publisher
+from app.models import Interest, Post, Publisher
 
 
 class PublisherTest(unittest.TestCase):
@@ -458,6 +458,23 @@ class InterestRouteTest(unittest.TestCase):
         db.session.add(self.publisher)
         db.session.commit()
 
+        self.interest_1 = Interest(name="a")
+        self.interest_2 = Interest(name="b")
+
+        db.session.add(self.interest_1)
+        db.session.add(self.interest_2)
+
+        for i in range(10):
+            post = Post(
+                title=str(i),
+                content=str(i),
+                published_at=datetime.fromisoformat("2022-03-02") - timedelta(days=i),
+                interests=[self.interest_1],
+            )
+            db.session.add(post)
+
+        db.session.commit()
+
         self.headers = {
             "Authorization": "Basic {}".format(
                 b64encode(
@@ -483,6 +500,52 @@ class InterestRouteTest(unittest.TestCase):
         self.assertEqual(req2.status_code, 401)
         self.assertEqual(req3.status_code, 401)
         self.assertEqual(req4.status_code, 401)
+
+    def test_set_post_interest(self):
+        req1 = self.client.patch(
+            "/api/v1/posts/1/", json={"interests": ["a", "b"]}, headers=self.headers
+        )
+        req2 = self.client.patch(
+            "/api/v1/posts/2/", json={"interests": ["a", "b"]}, headers=self.headers
+        )
+        req3 = self.client.patch(
+            "/api/v1/posts/3/", json={"interests": ["b"]}, headers=self.headers
+        )
+        req4 = self.client.patch(
+            "/api/v1/posts/4/", json={"interests": []}, headers=self.headers
+        )
+        req5 = self.client.patch(
+            "/api/v1/posts/5/",
+            json={"interests": ["a", "b", "c"]},
+            headers=self.headers,
+        )
+
+        self.assertEqual(req1.status_code, 201)
+        self.assertEqual(req2.status_code, 201)
+        self.assertEqual(req3.status_code, 201)
+        self.assertEqual(req4.status_code, 201)
+        self.assertEqual(req5.status_code, 400)
+
+        req1 = self.client.get("/api/v1/posts/1/")
+        req2 = self.client.get("/api/v1/posts/2/")
+        req3 = self.client.get("/api/v1/posts/3/")
+        req4 = self.client.get("/api/v1/posts/4/")
+        req5 = self.client.get("/api/v1/posts/5/")
+
+        self.assertEqual(req1.status_code, 200)
+        self.assertEqual(req2.status_code, 200)
+        self.assertEqual(req3.status_code, 200)
+        self.assertEqual(req4.status_code, 200)
+        self.assertEqual(req5.status_code, 200)
+
+        self.assertEqual(sorted(req1.json["interests"]), ["a", "b"])
+        self.assertEqual(sorted(req2.json["interests"]), ["a", "b"])
+        self.assertEqual(req3.json["interests"], ["b"])
+        self.assertEqual(req4.json["interests"], [])
+        self.assertEqual(req5.json["interests"], ["a"])
+
+    def test_filter_post_interest(self):
+        pass
 
 
 if __name__ == "__main__":

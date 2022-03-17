@@ -193,7 +193,7 @@ class Interest(db.Model):
 
     id = db.Column(db.Integer, autoincrement=True, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
-    description = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.String(200), nullable=False, default="")
 
     posts = db.relationship(
         "Post",

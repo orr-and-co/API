@@ -3,7 +3,7 @@ from datetime import datetime
 from flask import abort, jsonify, request
 
 from .. import db
-from ..models import Post
+from ..models import Interest, Post
 from . import api
 from .authentication import auth
 
@@ -92,6 +92,7 @@ def get_posts(id: int):
                 },
                 "media": post.binary_content,
                 "followup": post.followup_id,
+                "interests": [interest.name for interest in post.interests],
             }
 
             return jsonify(json_data)
@@ -124,6 +125,9 @@ def create_posts():
     :param binary_content: Base 64 encoded multimedia of the post.
     :type binary_content: str
 
+    :param interests: Names of interests to attach to this post.
+    :type interests: List[str]
+
     :param publish_at: When to publish this post. If not specified, this post will be held
         as a draft. Provide a UNIX timestamp
     :type publish_at: int
@@ -151,6 +155,14 @@ def create_posts():
     else:
         published_at = None
 
+    interests = [
+        Interest.query.filter(Interest.name == interest).first()
+        for interest in (request.json.get("interests") or [])
+    ]
+
+    if any(interest is None for interest in interests):
+        abort(400)
+
     post = Post(
         title=title,
         content=content,
@@ -158,6 +170,7 @@ def create_posts():
         published_at=published_at,
         preview_image=preview_image,
         binary_content=binary_content,
+        interests=interests,
         publisher=auth.current_user(),
     )
 
@@ -165,6 +178,78 @@ def create_posts():
     db.session.commit()
 
     return jsonify({"id": post.id})
+
+
+@api.route("/posts/<int:id>/", methods=["PATCH"])
+@auth.login_required
+def update_posts(id: int):
+    """
+    Create a new :class:`Post`. Requires authorization
+
+    **Route**: /api/v1/posts/id/
+
+    **Method**: PATCH
+
+    :param title: The new title of the Post.
+    :type title: str
+
+    :param content: New markdown content of the Post.
+    :type content: str
+
+    :param link: New link of the Post.
+    :type link: str
+
+    :param preview_image: New base 64 encoded review image of the post.
+    :type preview_image: str
+
+    :param binary_content: New base 64 encoded multimedia of the post.
+    :type binary_content: str
+
+    :param interests: List of interests to attach to the post.
+    :type interests: List[str]
+
+    :return: 201
+    """
+    if request.json is None:
+        abort(400)
+
+    post = Post.query.get(id)
+
+    if post is None:
+        abort(404)
+    else:
+        if (title := request.json.get("title")) is not None:
+            post.title = title
+
+        if (content := request.json.get("content")) is not None:
+            post.content = content
+
+        if (link := request.json.get("link")) is not None:
+            post.link = link
+
+        if (preview_image := request.json.get("preview_image")) is not None:
+            post.preview_image = preview_image
+
+        if (binary_content := request.json.get("binary_content")) is not None:
+            post.binary_content = binary_content
+
+        if (interests := request.json.get("interests")) is not None:
+            interests = [
+                Interest.query.filter(Interest.name == interest).first()
+                for interest in interests
+            ]
+
+            if any(interest is None for interest in interests):
+                # rollback db to prevent odd changes sticking around in memory
+                db.session.rollback()
+
+                abort(400)
+            else:
+                post.interests = interests
+
+        db.session.commit()
+
+        return "", 201
 
 
 @api.route("/posts/<int:id>/followup/", methods=["POST"])
