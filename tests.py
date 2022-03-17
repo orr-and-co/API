@@ -545,7 +545,35 @@ class InterestRouteTest(unittest.TestCase):
         self.assertEqual(req5.json["interests"], ["a"])
 
     def test_filter_post_interest(self):
-        pass
+        for post_id in range(1, 11):
+            if post_id % 2:
+                req = self.client.patch(
+                    "/api/v1/posts/{}/".format(post_id),
+                    json={"interests": ["a"]},
+                    headers=self.headers,
+                )
+            else:
+                req = self.client.patch(
+                    "/api/v1/posts/{}/".format(post_id),
+                    json={"interests": ["b"]},
+                    headers=self.headers,
+                )
+
+            self.assertEqual(req.status_code, 201)
+
+        req1 = self.client.get("/api/v1/posts/recent/")
+        req2 = self.client.get("/api/v1/posts/recent/?interests=a")
+        req3 = self.client.get("/api/v1/posts/recent/?interests=b")
+        req4 = self.client.get("/api/v1/posts/recent/?interests=a%20b")
+
+        self.assertEqual(req1.status_code, 200)
+        self.assertEqual(req2.status_code, 200)
+        self.assertEqual(req3.status_code, 200)
+        self.assertEqual(req4.status_code, 200)
+
+        self.assertEqual(req1.json, req4.json)
+        self.assertEqual([post["id"] for post in req2.json], [1, 3, 5, 7, 9])
+        self.assertEqual([post["id"] for post in req3.json], [2, 4, 6, 8, 10])
 
 
 if __name__ == "__main__":

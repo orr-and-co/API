@@ -20,6 +20,10 @@ def recent_posts():
     :param page: Optionally specify the page to get. Otherwise returns the first page.
     :type page: int
 
+    :param interests: Optionally specify a list of interest names to filter to,
+        space-separated (use %20 for HTML encoded).
+    :type interests: List[str]
+
     :return: A list of previews of posts.
 
     .. code-block:: json
@@ -37,11 +41,22 @@ def recent_posts():
     except ValueError:
         abort(400)
     else:
-        posts = (
-            Post.query.order_by(Post.published_at.desc())
-            .filter(Post.published_at <= datetime.now())
-            .paginate(page, 15)
-        )
+        if (interests := request.args.get("interests")) is not None:
+            interests = interests.split(" ")
+
+            # please man please just let me write SQL
+            posts = (
+                Post.query.order_by(Post.published_at.desc())
+                .filter(Post.published_at <= datetime.now())
+                .filter(Post.interests.any(Interest.name.in_(interests)))
+                .paginate(page, 15)
+            )
+        else:
+            posts = (
+                Post.query.order_by(Post.published_at.desc())
+                .filter(Post.published_at <= datetime.now())
+                .paginate(page, 15)
+            )
 
         return jsonify(
             [
@@ -51,6 +66,7 @@ def recent_posts():
                     "content": post.content,
                     "published_at": post.published_at.timestamp(),
                     "preview": post.preview_image,
+                    "interests": [interest.name for interest in post.interests],
                 }
                 for post in posts.items
             ]
