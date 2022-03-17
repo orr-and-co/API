@@ -27,6 +27,12 @@ Post
 .. automodule:: app.routes.posts
    :members:
 
+Interests
+---------
+
+.. automodule:: app.routes.interests
+   :members:
+
 Models
 ======
 
