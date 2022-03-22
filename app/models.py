@@ -119,6 +119,9 @@ class Post(db.Model):
     :param title: The title of the Post.
     :type title: str
 
+    :param short_content: Plain text short content to be displayed.
+    :type short_content: str
+
     :param content: Markdown content of the Post.
     :type content: str
 
@@ -152,6 +155,7 @@ class Post(db.Model):
     followup_id = db.Column(db.Integer, db.ForeignKey("post.id"))
 
     title = db.Column(db.String(200), nullable=False)
+    short_content = db.Column(db.String(250))
     content = db.Column(db.String(8000))
     link = db.Column(db.String(500))
     preview_image = db.Column(db.Text)

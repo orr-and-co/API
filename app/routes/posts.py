@@ -31,7 +31,7 @@ def recent_posts():
             {
                 "id": 1,
                 "title": "title",
-                "content": "content",
+                "short_content": "short_content",
                 "published_at": "time",
                 "preview": "preview base64"
             }
@@ -63,7 +63,7 @@ def recent_posts():
                 {
                     "id": post.id,
                     "title": post.title,
-                    "content": post.content,
+                    "short_content": post.short_content,
                     "published_at": post.published_at.timestamp(),
                     "preview": post.preview_image,
                     "interests": [interest.name for interest in post.interests],
@@ -100,6 +100,7 @@ def get_posts(id: int):
         else:
             json_data = {
                 "title": post.title,
+                "short_content": post.short_content,
                 "content": post.content,
                 "link": post.link,
                 "published_at": post.published_at.timestamp(),
@@ -128,6 +129,9 @@ def create_posts():
 
     :param title: The title of the Post.
     :type title: str
+
+    :param short_content: Plain text content for the Post preview.
+    :type short_content: str
 
     :param content: Markdown content of the Post.
     :type content: str
@@ -158,6 +162,7 @@ def create_posts():
     if title is None:
         abort(400)
 
+    short_content = request.json.get("short_content")
     content = request.json.get("content")
     link = request.json.get("link")
     preview_image = request.json.get("preview_image")
@@ -181,6 +186,7 @@ def create_posts():
 
     post = Post(
         title=title,
+        short_content=short_content,
         content=content,
         link=link,
         published_at=published_at,

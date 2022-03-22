@@ -374,6 +374,7 @@ class PostRouteTest2(unittest.TestCase):
             "/api/v1/posts/",
             json={
                 "title": "id like to interject for a moment",
+                "short_content": "interject",
                 "content": "What you are refering to as Linux is in fact GNU/Linux, or as I have begun saying, GNU slash Linux.",
                 "publish_at": time.time() - 1,
             },
@@ -389,8 +390,8 @@ class PostRouteTest2(unittest.TestCase):
         self.assertEqual(len(req3.json), 1)
         self.assertEqual(req2.json["title"], "id like to interject for a moment")
         self.assertEqual(
-            req3.json[0]["content"],
-            "What you are refering to as Linux is in fact GNU/Linux, or as I have begun saying, GNU slash Linux.",
+            req3.json[0]["short_content"],
+            "interject",
         )
 
     def test_create_post_future(self):
