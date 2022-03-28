@@ -3,10 +3,10 @@ from flask import Blueprint
 api = Blueprint("api", __name__)
 
 
-@api.after_request  # blueprint can also be app~~
+@api.after_request
 def after_request(response):
     response.headers["Access-Control-Allow-Origin"] = "*"
-    # Other headers can be added here if required
+    response.headers["Access-Control-Allow-Headers"] = "Authorization"
     return response
 
 
