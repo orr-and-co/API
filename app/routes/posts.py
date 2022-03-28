@@ -8,6 +8,107 @@ from . import api
 from .authentication import auth
 
 
+@api.route("/posts/all/", methods=["GET"])
+@auth.login_required
+def all_posts():
+    """
+    Get a page of posts ordered by creation date. Requires authorization.
+
+    **Route**: /api/v1/posts/all/?page=page
+
+    **Method**: GET
+
+    :param page: Optionally specify the page to get. Otherwise returns the first page.
+    :type page: int
+
+    :return: A list of previews of posts.
+
+    .. code-block:: json
+
+            {
+                "id": 1,
+                "title": "title",
+                "short_content": "short_content",
+                "published_at": "time",
+                "preview": "preview base64",
+                "interests": []
+            }
+    """
+    try:
+        page = int(request.args.get("page") or 1)
+    except ValueError:
+        abort(400)
+    else:
+        posts = Post.query.order_by(Post.created_at.desc()).paginate(page, 15)
+
+        return jsonify(
+            [
+                {
+                    "id": post.id,
+                    "title": post.title,
+                    "short_content": post.short_content,
+                    "created_at": post.created_at.timestamp(),
+                    "published_at": published_at.timestamp()
+                    if (published_at := post.published_at) is not None
+                    else None,
+                    "preview": post.preview_image,
+                    "interests": [interest.name for interest in post.interests],
+                }
+                for post in posts.items
+            ]
+        )
+
+
+@api.route("/posts/media/", methods=["GET"])
+def media_posts():
+    """
+    Get a page of recent media posts.
+
+    **Route**: /api/v1/posts/media/?page=page
+
+    **Method**: GET
+
+    :param page: Optionally specify the page to get. Otherwise returns the first page.
+    :type page: int
+
+    :return: A list of previews of posts.
+
+    .. code-block:: json
+
+            {
+                "id": 1,
+                "title": "title",
+                "published_at": "time",
+                "preview": "preview base64",
+                "interests": []
+            }
+    """
+    try:
+        page = int(request.args.get("page") or 1)
+    except ValueError:
+        abort(400)
+    else:
+        posts = (
+            Post.query.order_by(Post.published_at.desc())
+            .filter(Post.published_at <= datetime.now())
+            .filter(Post.binary_content.isnot(None))
+            .paginate(page, 15)
+        )
+
+        return jsonify(
+            [
+                {
+                    "id": post.id,
+                    "title": post.title,
+                    "published_at": post.published_at.timestamp(),
+                    "preview": post.preview_image,
+                    "interests": [interest.name for interest in post.interests],
+                }
+                for post in posts.items
+            ]
+        )
+
+
 @api.route("/posts/recent/", methods=["GET"])
 def recent_posts():
     """
@@ -33,7 +134,8 @@ def recent_posts():
                 "title": "title",
                 "short_content": "short_content",
                 "published_at": "time",
-                "preview": "preview base64"
+                "preview": "preview base64",
+                "interests": []
             }
     """
     try:
@@ -79,7 +181,7 @@ def get_posts(id: int):
     Get a specific :class:`Post`. Used when loading a post in full and not just the
         preview. Substitute **id** in the route for the ID to get.
 
-    **Route**: /api/v1/posts/id/
+    **Route**: /api/v1/posts/ID/
 
     **Method**: GET
 
@@ -123,7 +225,7 @@ def create_posts():
     """
     Create a new :class:`Post`. Requires authorization
 
-    **Route**: /api/v1/posts
+    **Route**: /api/v1/posts/
 
     **Method**: POST
 
@@ -155,7 +257,6 @@ def create_posts():
     :return: ID of the new post
     """
     if request.json is None:
-        print("no json")
         abort(400)
 
     title = request.json.get("title")

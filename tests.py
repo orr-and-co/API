@@ -447,6 +447,75 @@ class PostRouteTest2(unittest.TestCase):
         self.assertEqual(req3.json["followup"], req2.json["id"])
 
 
+class PostRouteTest3(unittest.TestCase):
+    def setUp(self):
+        self.app = create_app("testing")
+        self.app_context = self.app.app_context()
+        self.app_context.push()
+        db.create_all()
+        self.client = self.app.test_client()
+
+        self.publisher = Publisher()
+        db.session.add(self.publisher)
+        db.session.commit()
+
+        self.headers = {
+            "Authorization": "Basic {}".format(
+                b64encode(
+                    "{}:".format(self.publisher.generate_auth_token(120)).encode(
+                        "utf-8"
+                    )
+                ).decode("utf-8")
+            )
+        }
+
+        self.posts = [
+            Post(
+                title="a",
+                content="abc",
+                binary_content="abc",
+                published_at=datetime.fromtimestamp(time.time() - 10),
+            ),
+            Post(
+                title="b",
+                content="abc",
+                binary_content="abc",
+                published_at=None,
+            ),
+            Post(
+                title="c",
+                content="abc",
+                published_at=datetime.fromtimestamp(time.time()),
+            ),
+            Post(title="d", content="abc", published_at=None),
+        ]
+
+        [db.session.add(post) for post in self.posts]
+        db.session.commit()
+
+    def tearDown(self):
+        db.session.remove()
+        db.drop_all()
+        self.app_context.pop()
+
+    def test_media_posts(self):
+        req1 = self.client.get("/api/v1/posts/media/")
+
+        self.assertEqual(req1.status_code, 200)
+        self.assertEqual([post["title"] for post in req1.json], ["a"])
+
+    def test_all_posts(self):
+        req1 = self.client.get("/api/v1/posts/all/")
+        req2 = self.client.get("/api/v1/posts/all/", headers=self.headers)
+        req3 = self.client.get("/api/v1/posts/recent/")
+
+        self.assertEqual(req1.status_code, 401)
+        self.assertEqual(req2.status_code, 200)
+        self.assertEqual(req3.status_code, 200)
+        self.assertEqual([post["title"] for post in req2.json], ["a", "b", "c", "d"])
+        self.assertEqual([post["title"] for post in req3.json], ["c", "a"])
+
+
 class InterestRouteTest(unittest.TestCase):
     def setUp(self):
         self.app = create_app("testing")
