@@ -155,6 +155,7 @@ def create_posts():
     :return: ID of the new post
     """
     if request.json is None:
+        print("no json")
         abort(400)
 
     title = request.json.get("title")
@@ -206,7 +207,7 @@ def create_posts():
 @auth.login_required
 def update_posts(id: int):
     """
-    Create a new :class:`Post`. Requires authorization
+    Update an existing :class:`Post` by ID. Requires authorization
 
     **Route**: /api/v1/posts/id/
 
